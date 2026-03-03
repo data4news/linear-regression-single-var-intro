@@ -8,7 +8,7 @@ installPackage <- function(pkg) {
 # A list of packages to install, including tidyverse
 # (this includes ggplot2, dplyr, and several others...)
 # https://www.tidyverse.org/packages/
-libs <- c("tidyverse", "extrafont", "Cairo", "devtools","gridExtra")
+libs <- c("tidyverse", "extrafont", "Cairo", "devtools","gridExtra", "corrplot")
 
 # Apply the function above to the list of packages
 lapply(libs, installPackage)

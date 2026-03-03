@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linear Regression: MPG ~ Weight</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Georgia', serif;
+  background: #0f1117;
+  color: #e8e8e8;
+  line-height: 1.6;
+}
+
+/* ── Intro ───────────────────────────────────────────────── */
+#intro {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(180deg, #0f1117 0%, #1a1d2e 100%);
+}
+#intro h1 {
+  font-size: clamp(1.8rem, 4vw, 3.5rem);
+  color: #fff;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+  max-width: 700px;
+}
+#intro .subtitle {
+  font-size: 1.1rem;
+  color: #aaa;
+  max-width: 540px;
+  margin-bottom: 2.5rem;
+}
+.scroll-hint {
+  font-size: 0.9rem;
+  color: #555;
+  letter-spacing: 0.1em;
+  animation: bounce 2s infinite;
+}
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(8px); }
+}
+
+/* ── Scrolly layout ──────────────────────────────────────── */
+#scrolly {
+  display: flex;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+#sticky-chart {
+  flex: 0 0 55%;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+#steps {
+  flex: 0 0 45%;
+  padding: 0 2rem;
+}
+
+/* ── Step cards ──────────────────────────────────────────── */
+.step {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 2rem 0;
+}
+.step-content {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 2rem;
+  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+  width: 100%;
+}
+.step.is-active .step-content {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(99,179,237,0.35);
+  box-shadow: 0 0 40px rgba(99,179,237,0.08);
+}
+.step-number {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #63b3ed;
+  margin-bottom: 0.6rem;
+}
+.step h2 {
+  font-size: 1.35rem;
+  color: #fff;
+  margin-bottom: 0.9rem;
+  line-height: 1.3;
+}
+.step p {
+  font-size: 0.92rem;
+  color: #bbb;
+  margin-bottom: 0.7rem;
+}
+.formula {
+  background: rgba(0,0,0,0.35);
+  border-left: 3px solid #63b3ed;
+  padding: 0.7rem 1rem;
+  border-radius: 0 6px 6px 0;
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  color: #90cdf4;
+  margin: 1rem 0;
+}
+.stat-row {
+  display: flex;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+.stat {
+  flex: 1;
+  min-width: 90px;
+  background: rgba(99,179,237,0.09);
+  border: 1px solid rgba(99,179,237,0.28);
+  border-radius: 8px;
+  padding: 0.7rem;
+  text-align: center;
+}
+.stat-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #63b3ed;
+  font-family: 'Courier New', monospace;
+}
+.stat-label {
+  font-size: 0.72rem;
+  color: #777;
+  margin-top: 0.2rem;
+}
+.hl  { color: #f6ad55; font-weight: 600; }
+.hlg { color: #68d391; font-weight: 600; }
+.hlr { color: #fc8181; font-weight: 600; }
+
+/* ── Outro ───────────────────────────────────────────────── */
+#outro {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 5rem 2rem;
+  background: linear-gradient(180deg, #1a1d2e 0%, #0f1117 100%);
+}
+#outro h2 { font-size: 1.9rem; color: #fff; margin-bottom: 1rem; }
+#outro p  { color: #aaa; max-width: 520px; margin: 0 auto; line-height: 1.8; }
+
+/* ── SVG & Tooltip ───────────────────────────────────────── */
+.axis-label { font-family: 'Georgia', serif; }
+#tooltip {
+  position: fixed;
+  background: rgba(15,17,23,0.95);
+  border: 1px solid rgba(99,179,237,0.4);
+  border-radius: 8px;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: #e8e8e8;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 200;
+  transition: opacity 0.15s;
+}
+</style>
+</head>
+<body>
+
+<div id="tooltip"></div>
+
+<!-- ── Intro ── -->
+<section id="intro">
+  <h1>Does a Car's Weight Predict Its Fuel Economy?</h1>
+  <p class="subtitle">
+    An interactive introduction to simple linear regression using the classic
+    <em>Motor Trend</em> Car Road Tests dataset from 1974.
+  </p>
+  <p class="scroll-hint">↓ &nbsp; Scroll to explore</p>
+</section>
+
+<!-- ── Scrolly ── -->
+<div id="scrolly">
+
+  <div id="sticky-chart">
+    <svg id="chart"></svg>
+  </div>
+
+  <div id="steps">
+
+    <!-- Step 1 -->
+    <div class="step" data-step="1">
+      <div class="step-content">
+        <div class="step-number">Step 1 of 5</div>
+        <h2>The Data: 32 Cars, Two Variables</h2>
+        <p>
+          Each dot represents one of 32 cars tested by <em>Motor Trend</em>
+          magazine in 1974. The <span class="hl">x-axis</span> is vehicle weight
+          in thousands of pounds; the <span class="hl">y-axis</span> is fuel
+          efficiency in miles per gallon.
+        </p>
+        <p>
+          Even at a glance the pattern is clear — <strong>heavier cars tend
+          to get worse mileage.</strong> But <em>how</em> strong is this
+          relationship? Can we put a precise number on it?
+        </p>
+        <p>That's exactly what linear regression does. Hover over any dot to see the car's name and stats.</p>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step" data-step="2">
+      <div class="step-content">
+        <div class="step-number">Step 2 of 5</div>
+        <h2>The Best-Fit Line</h2>
+        <p>
+          Linear regression draws the single straight line that
+          <strong>minimizes the total squared vertical distance</strong> from
+          every point to the line. This is called
+          <em>Ordinary Least Squares (OLS)</em>.
+        </p>
+        <div class="formula">mpg = β₀ + β₁ × wt + ε</div>
+        <p>
+          <strong>β₀</strong> is the <em>intercept</em> — where the line
+          crosses the y-axis.<br>
+          <strong>β₁</strong> is the <em>slope</em> — how steeply MPG falls
+          as weight increases.<br>
+          <strong>ε</strong> is random error the model can't account for.
+        </p>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step" data-step="3">
+      <div class="step-content">
+        <div class="step-number">Step 3 of 5</div>
+        <h2>Slope &amp; Intercept: Reading the Line</h2>
+        <p>Fitting the model to our 32 cars gives:</p>
+        <div class="stat-row">
+          <div class="stat">
+            <div class="stat-value">37.29</div>
+            <div class="stat-label">Intercept β₀</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" style="color:#fc8181;">−5.34</div>
+            <div class="stat-label">Slope β₁</div>
+          </div>
+        </div>
+        <div class="formula">mpg = 37.29 − 5.34 × wt</div>
+        <p>
+          The <span class="hlr">slope of −5.34</span> means every extra
+          1,000&nbsp;lbs of weight corresponds to roughly
+          <strong>5.3 fewer miles per gallon</strong>.
+        </p>
+        <p>
+          The intercept of 37.29 is where the line hits the y-axis — the
+          predicted MPG for a car weighing zero. Not physically meaningful,
+          but mathematically required.
+        </p>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step" data-step="4">
+      <div class="step-content">
+        <div class="step-number">Step 4 of 5</div>
+        <h2>R²: How Much Variance is Explained?</h2>
+        <p>
+          The <strong>residuals</strong> (vertical lines from each point to the
+          regression line) show what the model <em>couldn't predict</em>.
+          <span class="hlg">Green</span> = car beat the prediction;
+          <span class="hlr">red</span> = car fell short.
+        </p>
+        <div class="formula">R² = 1 − (SS<sub>residual</sub> / SS<sub>total</sub>)</div>
+        <div class="stat-row">
+          <div class="stat">
+            <div class="stat-value" style="color:#68d391;">0.753</div>
+            <div class="stat-label">R²</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" style="color:#68d391;">75.3%</div>
+            <div class="stat-label">Variance explained</div>
+          </div>
+        </div>
+        <p>
+          Weight alone explains <span class="hlg">75.3%</span> of the
+          variation in fuel economy across these 32 cars. That's a very
+          strong single-predictor relationship.
+        </p>
+        <p>
+          The remaining 24.7% is due to other factors — engine design,
+          aerodynamics, transmission type, and so on.
+        </p>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="step" data-step="5">
+      <div class="step-content">
+        <div class="step-number">Step 5 of 5</div>
+        <h2>p-value: Could This Be Random Chance?</h2>
+        <p>
+          Even a pattern that looks strong could arise by coincidence in a small
+          sample. The <strong>p-value</strong> answers: <em>if weight had
+          truly zero effect on MPG, how likely would we be to see a slope at
+          least this extreme?</em>
+        </p>
+        <div class="stat-row">
+          <div class="stat" style="min-width:160px;">
+            <div class="stat-value" style="color:#68d391; font-size:1.05rem;">
+              1.29 × 10⁻¹⁰
+            </div>
+            <div class="stat-label">p-value for slope</div>
+          </div>
+        </div>
+        <p>
+          This p-value is <span class="hlg">astronomically small</span> — far
+          below the conventional 0.05 threshold. The shaded band shows the
+          <strong>95% confidence interval</strong> around our regression line.
+        </p>
+        <p>
+          Bottom line: if weight had no effect on MPG, we'd expect a relationship
+          this strong to appear by chance only once in roughly
+          <strong>8 billion random samples</strong>.
+          The relationship is almost certainly real.
+        </p>
+      </div>
+    </div>
+
+  </div><!-- /steps -->
+</div><!-- /scrolly -->
+
+<!-- ── Outro ── -->
+<section id="outro">
+  <div>
+    <h2>Putting It All Together</h2>
+    <p>
+      Simple linear regression gave us a precise, interpretable model.
+      Weight alone predicts MPG with a slope of −5.34 MPG per 1,000&nbsp;lbs,
+      explains 75% of the variation in fuel economy, and does so with
+      statistical confidence that goes far beyond any reasonable doubt.
+      That's the power — and the beauty — of a single regression line.
+    </p>
+  </div>
+</section>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────────
+const cars = [
+  {name:"Mazda RX4",          wt:2.620, mpg:21.0},
+  {name:"Mazda RX4 Wag",      wt:2.875, mpg:21.0},
+  {name:"Datsun 710",         wt:2.320, mpg:22.8},
+  {name:"Hornet 4 Drive",     wt:3.215, mpg:21.4},
+  {name:"Hornet Sportabout",  wt:3.440, mpg:18.7},
+  {name:"Valiant",            wt:3.460, mpg:18.1},
+  {name:"Duster 360",         wt:3.570, mpg:14.3},
+  {name:"Merc 240D",          wt:3.190, mpg:24.4},
+  {name:"Merc 230",           wt:3.150, mpg:22.8},
+  {name:"Merc 280",           wt:3.440, mpg:19.2},
+  {name:"Merc 280C",          wt:3.440, mpg:17.8},
+  {name:"Merc 450SE",         wt:4.070, mpg:16.4},
+  {name:"Merc 450SL",         wt:3.730, mpg:17.3},
+  {name:"Merc 450SLC",        wt:3.780, mpg:15.2},
+  {name:"Cadillac Fleetwood", wt:5.250, mpg:10.4},
+  {name:"Lincoln Continental",wt:5.424, mpg:10.4},
+  {name:"Chrysler Imperial",  wt:5.345, mpg:14.7},
+  {name:"Fiat 128",           wt:2.200, mpg:32.4},
+  {name:"Honda Civic",        wt:1.615, mpg:30.4},
+  {name:"Toyota Corolla",     wt:1.835, mpg:33.9},
+  {name:"Toyota Corona",      wt:2.465, mpg:21.5},
+  {name:"Dodge Challenger",   wt:3.520, mpg:15.5},
+  {name:"AMC Javelin",        wt:3.435, mpg:15.2},
+  {name:"Camaro Z28",         wt:3.840, mpg:13.3},
+  {name:"Pontiac Firebird",   wt:3.845, mpg:19.2},
+  {name:"Fiat X1-9",          wt:1.935, mpg:27.3},
+  {name:"Porsche 914-2",      wt:2.140, mpg:26.0},
+  {name:"Lotus Europa",       wt:1.513, mpg:30.4},
+  {name:"Ford Pantera L",     wt:3.170, mpg:15.8},
+  {name:"Ferrari Dino",       wt:2.770, mpg:19.7},
+  {name:"Maserati Bora",      wt:3.570, mpg:15.0},
+  {name:"Volvo 142E",         wt:2.780, mpg:21.4},
+];
+
+// Model coefficients from R: lm(mpg ~ wt, data = mtcars)
+const B0    = 37.2851;   // intercept
+const B1    = -5.3445;   // slope
+const R2    = 0.7528;
+const PVAL  = 1.294e-10;
+const SIGMA = 3.046;     // residual SE
+const N     = 32;
+const XMEAN = 3.21725;   // mean(mtcars$wt)
+const SXX   = 19.6962;   // sum((wt - mean(wt))^2)
+const T025  = 2.042;     // qt(0.975, 30)
+
+const predict = wt => B0 + B1 * wt;
+
+// ── Chart dimensions ──────────────────────────────────────────────────────────
+const margin = { top: 28, right: 28, bottom: 52, left: 54 };
+
+function chartSize() {
+  const el = document.getElementById('sticky-chart');
+  const W = Math.min(el.clientWidth  - margin.left - margin.right, 520);
+  const H = Math.min(window.innerHeight * 0.72, 460) - margin.top - margin.bottom;
+  return { W, H };
+}
+
+let { W, H } = chartSize();
+
+const svg = d3.select('#chart')
+  .attr('width',  W + margin.left + margin.right)
+  .attr('height', H + margin.top  + margin.bottom);
+
+const g = svg.append('g')
+  .attr('transform', `translate(${margin.left},${margin.top})`);
+
+const xSc = d3.scaleLinear().domain([1.1, 5.7]).range([0, W]);
+const ySc = d3.scaleLinear().domain([8,  36 ]).range([H, 0]);
+
+// ── Grid ──────────────────────────────────────────────────────────────────────
+const gridStyle = sel =>
+  sel.attr('stroke','rgba(255,255,255,0.05)').attr('stroke-width',1);
+
+g.append('g').selectAll('line').data(xSc.ticks(5)).join('line')
+  .attr('x1',d=>xSc(d)).attr('x2',d=>xSc(d)).attr('y1',0).attr('y2',H)
+  .call(gridStyle);
+g.append('g').selectAll('line').data(ySc.ticks(6)).join('line')
+  .attr('x1',0).attr('x2',W).attr('y1',d=>ySc(d)).attr('y2',d=>ySc(d))
+  .call(gridStyle);
+
+// ── Axes ──────────────────────────────────────────────────────────────────────
+const axStyle = sel => {
+  sel.select('.domain').attr('stroke','rgba(255,255,255,0.18)');
+  sel.selectAll('text').attr('fill','#888').attr('font-size','11px');
+  sel.selectAll('.tick line').attr('stroke','rgba(255,255,255,0.18)');
+};
+
+g.append('g').attr('transform',`translate(0,${H})`).call(d3.axisBottom(xSc).ticks(5).tickSize(4)).call(axStyle);
+g.append('g').call(d3.axisLeft(ySc).ticks(6).tickSize(4)).call(axStyle);
+
+g.append('text').attr('x',W/2).attr('y',H+44)
+  .attr('text-anchor','middle').attr('fill','#999').attr('font-size','12px')
+  .text('Weight (1,000 lbs)');
+g.append('text').attr('transform','rotate(-90)').attr('x',-H/2).attr('y',-40)
+  .attr('text-anchor','middle').attr('fill','#999').attr('font-size','12px')
+  .text('Miles Per Gallon');
+
+// ── Layers (back → front) ────────────────────────────────────────────────────
+const bandLayer     = g.append('g').attr('class','band-layer');
+const residualLayer = g.append('g').attr('class','residual-layer');
+const lineLayer     = g.append('g').attr('class','line-layer');
+const pointLayer    = g.append('g').attr('class','point-layer');
+const annotLayer    = g.append('g').attr('class','annot-layer');
+
+// ── Tooltip ───────────────────────────────────────────────────────────────────
+const tip = document.getElementById('tooltip');
+
+// ── Points ────────────────────────────────────────────────────────────────────
+pointLayer.selectAll('circle').data(cars).join('circle')
+  .attr('cx', d => xSc(d.wt))
+  .attr('cy', d => ySc(d.mpg))
+  .attr('r', 5.5)
+  .attr('fill', '#63b3ed')
+  .attr('fill-opacity', 0.82)
+  .attr('stroke', 'rgba(255,255,255,0.25)')
+  .attr('stroke-width', 1)
+  .style('cursor','pointer')
+  .style('opacity', 0)
+  .on('mouseover', function(event, d) {
+    d3.select(this).attr('r', 8).attr('fill','#bee3f8');
+    tip.style.opacity = 1;
+    tip.innerHTML = `<strong>${d.name}</strong><br>
+      Weight: ${d.wt} klbs &nbsp;|&nbsp; MPG: ${d.mpg}<br>
+      Predicted: ${predict(d.wt).toFixed(1)} MPG &nbsp;|&nbsp;
+      Residual: ${(d.mpg - predict(d.wt)).toFixed(1)}`;
+  })
+  .on('mousemove', function(event) {
+    tip.style.left = (event.clientX + 14) + 'px';
+    tip.style.top  = (event.clientY - 32) + 'px';
+  })
+  .on('mouseout', function() {
+    d3.select(this).attr('r', 5.5).attr('fill','#63b3ed');
+    tip.style.opacity = 0;
+  });
+
+// ── Step renderer ────────────────────────────────────────────────────────────
+let currentStep = 0;
+
+function showStep(step) {
+  const dur = 650;
+  const t = d3.transition().duration(dur).ease(d3.easeCubicInOut);
+
+  // ── Points: always visible from step 1
+  pointLayer.selectAll('circle')
+    .transition(t).style('opacity', step >= 1 ? 1 : 0);
+
+  // ── Regression line: step 2+
+  if (step >= 2) {
+    if (lineLayer.select('line.reg').empty()) {
+      const mx = W / 2;
+      lineLayer.append('line').attr('class','reg')
+        .attr('x1', mx).attr('y1', ySc(predict(xSc.invert(mx))))
+        .attr('x2', mx).attr('y2', ySc(predict(xSc.invert(mx))))
+        .attr('stroke','#f6ad55').attr('stroke-width',2.5).attr('stroke-opacity',0.92)
+        .transition(t)
+        .attr('x1', xSc(1.1)).attr('y1', ySc(predict(1.1)))
+        .attr('x2', xSc(5.7)).attr('y2', ySc(predict(5.7)));
+    } else {
+      lineLayer.select('line.reg').transition(t).style('opacity',1);
+    }
+  } else {
+    lineLayer.selectAll('line.reg').transition(t).style('opacity',0).on('end', function(){ d3.select(this).remove(); });
+  }
+
+  // ── Slope / intercept annotations: step 3 only
+  annotLayer.selectAll('.slope-annot').transition(t).style('opacity',0)
+    .on('end', function(){ d3.select(this).remove(); });
+
+  if (step === 3) {
+    const wx1 = 2.0, wx2 = 3.0;
+    const px1 = xSc(wx1), px2 = xSc(wx2);
+    const py1 = ySc(predict(wx1)), py2 = ySc(predict(wx2));
+
+    // Horizontal "run" line
+    annotLayer.append('line').attr('class','slope-annot')
+      .attr('x1',px1).attr('y1',py1).attr('x2',px2).attr('y2',py1)
+      .attr('stroke','#f6ad55').attr('stroke-width',1.5).attr('stroke-dasharray','5,3')
+      .style('opacity',0).transition(t).style('opacity',0.85);
+    // Vertical "rise" line
+    annotLayer.append('line').attr('class','slope-annot')
+      .attr('x1',px2).attr('y1',py1).attr('x2',px2).attr('y2',py2)
+      .attr('stroke','#fc8181').attr('stroke-width',1.5).attr('stroke-dasharray','5,3')
+      .style('opacity',0).transition(t).style('opacity',0.85);
+    // Run label
+    annotLayer.append('text').attr('class','slope-annot')
+      .attr('x',(px1+px2)/2).attr('y',py1-9)
+      .attr('text-anchor','middle').attr('fill','#f6ad55').attr('font-size','11px')
+      .text('+ 1,000 lbs →').style('opacity',0).transition(t).style('opacity',1);
+    // Rise label
+    annotLayer.append('text').attr('class','slope-annot')
+      .attr('x',px2+6).attr('y',(py1+py2)/2+4)
+      .attr('text-anchor','start').attr('fill','#fc8181').attr('font-size','11px')
+      .text('−5.3 MPG').style('opacity',0).transition(t).style('opacity',1);
+    // Intercept tick
+    const iy = ySc(B0);
+    annotLayer.append('line').attr('class','slope-annot')
+      .attr('x1',-6).attr('y1',iy).attr('x2',14).attr('y2',iy)
+      .attr('stroke','#68d391').attr('stroke-width',1.5)
+      .style('opacity',0).transition(t).style('opacity',0.85);
+    annotLayer.append('text').attr('class','slope-annot')
+      .attr('x',18).attr('y',iy+4)
+      .attr('fill','#68d391').attr('font-size','10px')
+      .text('β₀ = 37.3').style('opacity',0).transition(t).style('opacity',1);
+  }
+
+  // ── Residuals: step 4 only
+  if (step === 4) {
+    residualLayer.selectAll('line.resid').data(cars).join(
+      enter => enter.append('line').attr('class','resid')
+        .attr('x1', d=>xSc(d.wt)).attr('x2', d=>xSc(d.wt))
+        .attr('y1', d=>ySc(d.mpg)).attr('y2', d=>ySc(d.mpg))
+        .attr('stroke', d => d.mpg >= predict(d.wt) ? '#68d391' : '#fc8181')
+        .attr('stroke-width', 1.5).attr('stroke-opacity', 0.8)
+        .transition(t).attr('y2', d=>ySc(predict(d.wt))),
+      update => update.transition(t).style('opacity',1),
+      exit   => exit.transition(t).style('opacity',0).remove()
+    );
+    // R² box
+    const bx = W - 155, by = 8;
+    annotLayer.append('rect').attr('class','r2box slope-annot')
+      .attr('x',bx).attr('y',by).attr('width',150).attr('height',55)
+      .attr('fill','rgba(0,0,0,0.55)').attr('stroke','rgba(104,211,145,0.45)').attr('rx',7)
+      .style('opacity',0).transition(t).style('opacity',1);
+    annotLayer.append('text').attr('class','slope-annot')
+      .attr('x',bx+75).attr('y',by+24).attr('text-anchor','middle')
+      .attr('fill','#68d391').attr('font-size','14px').attr('font-weight','bold')
+      .text('R² = 0.753').style('opacity',0).transition(t).style('opacity',1);
+    annotLayer.append('text').attr('class','slope-annot')
+      .attr('x',bx+75).attr('y',by+41).attr('text-anchor','middle')
+      .attr('fill','#aaa').attr('font-size','10px')
+      .text('75.3% variance explained').style('opacity',0).transition(t).style('opacity',1);
+  } else {
+    residualLayer.selectAll('line.resid').transition(t).style('opacity',0).remove();
+  }
+
+  // ── Confidence band + p-value: step 5
+  if (step === 5) {
+    const bandData = d3.range(1.1, 5.72, 0.05).map(wt => {
+      const se   = SIGMA * Math.sqrt(1/N + Math.pow(wt - XMEAN, 2) / SXX);
+      const pred = predict(wt);
+      return { wt, lo: pred - T025 * se, hi: pred + T025 * se };
+    });
+    const area = d3.area()
+      .x( d => xSc(d.wt))
+      .y0(d => ySc(d.lo))
+      .y1(d => ySc(d.hi));
+
+    bandLayer.selectAll('path.band').data([bandData]).join(
+      enter => enter.append('path').attr('class','band')
+        .datum(d => d).attr('d', area)
+        .attr('fill','#f6ad55').attr('fill-opacity',0).attr('stroke','none')
+        .transition(t).attr('fill-opacity',0.14),
+      update => update.transition(t).attr('fill-opacity',0.14),
+      exit   => exit.transition(t).attr('fill-opacity',0).remove()
+    );
+    // p-value box
+    const bx = W - 170, by = 8;
+    annotLayer.append('rect').attr('class','pbox slope-annot')
+      .attr('x',bx).attr('y',by).attr('width',165).attr('height',55)
+      .attr('fill','rgba(0,0,0,0.55)').attr('stroke','rgba(104,211,145,0.45)').attr('rx',7)
+      .style('opacity',0).transition(t).style('opacity',1);
+    annotLayer.append('text').attr('class','slope-annot')
+      .attr('x',bx+82).attr('y',by+24).attr('text-anchor','middle')
+      .attr('fill','#68d391').attr('font-size','12px').attr('font-weight','bold')
+      .text('p = 1.29 × 10⁻¹⁰').style('opacity',0).transition(t).style('opacity',1);
+    annotLayer.append('text').attr('class','slope-annot')
+      .attr('x',bx+82).attr('y',by+41).attr('text-anchor','middle')
+      .attr('fill','#aaa').attr('font-size','10px')
+      .text('95% confidence band').style('opacity',0).transition(t).style('opacity',1);
+  } else {
+    bandLayer.selectAll('path.band').transition(t).attr('fill-opacity',0).remove();
+  }
+}
+
+// ── Intersection Observer ────────────────────────────────────────────────────
+const steps = document.querySelectorAll('.step');
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const step = +entry.target.dataset.step;
+      steps.forEach(s => s.classList.remove('is-active'));
+      entry.target.classList.add('is-active');
+      if (step !== currentStep) {
+        currentStep = step;
+        showStep(step);
+      }
+    }
+  });
+}, { threshold: 0.5, rootMargin: '0px 0px -15% 0px' });
+
+steps.forEach(s => observer.observe(s));
+
+// Initial render
+showStep(1);
+</script>
+</body>
+</html>

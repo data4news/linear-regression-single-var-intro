@@ -206,7 +206,7 @@ body {
     <!-- Step 1 -->
     <div class="step" data-step="1">
       <div class="step-content">
-        <div class="step-number">Step 1 of 5</div>
+        <div class="step-number">Step 1 of 7</div>
         <h2>The Data: 32 Cars, Two Variables</h2>
         <p>
           Each dot represents one of 32 cars tested by <em>Motor Trend</em>
@@ -226,7 +226,7 @@ body {
     <!-- Step 2 -->
     <div class="step" data-step="2">
       <div class="step-content">
-        <div class="step-number">Step 2 of 5</div>
+        <div class="step-number">Step 2 of 7</div>
         <h2>The Best-Fit Line</h2>
         <p>
           Linear regression draws the single straight line that
@@ -248,7 +248,7 @@ body {
     <!-- Step 3 -->
     <div class="step" data-step="3">
       <div class="step-content">
-        <div class="step-number">Step 3 of 5</div>
+        <div class="step-number">Step 3 of 7</div>
         <h2>Slope &amp; Intercept: Reading the Line</h2>
         <p>Fitting the model to our 32 cars gives:</p>
         <div class="stat-row">
@@ -278,15 +278,77 @@ body {
     <!-- Step 4 -->
     <div class="step" data-step="4">
       <div class="step-content">
-        <div class="step-number">Step 4 of 5</div>
-        <h2>R²: How Much Variance is Explained?</h2>
+        <div class="step-number">Step 4 of 7</div>
+        <h2>SS<sub>total</sub>: Total Variance in MPG</h2>
         <p>
-          The <strong>residuals</strong> (vertical lines from each point to the
-          regression line) show what the model <em>couldn't predict</em>.
+          Before we can measure what the model explains, we need a baseline:
+          <strong>how much does MPG vary overall?</strong>
+        </p>
+        <p>
+          The dashed line is the <span class="hl">mean MPG (ȳ = 20.09)</span>.
+          Each orange bar shows how far that car's actual MPG is from the mean.
+          SS<sub>total</sub> squares and sums all those gaps.
+        </p>
+        <div class="formula">SS<sub>total</sub> = Σ (yᵢ − ȳ)²</div>
+        <div class="stat-row">
+          <div class="stat">
+            <div class="stat-value" style="color:#f6ad55;">20.09</div>
+            <div class="stat-label">Mean MPG (ȳ)</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" style="color:#f6ad55;">1126.05</div>
+            <div class="stat-label">SS<sub>total</sub></div>
+          </div>
+        </div>
+        <p>
+          This is the total variance we're trying to explain. The regression
+          model's job is to account for as much of it as possible.
+        </p>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="step" data-step="5">
+      <div class="step-content">
+        <div class="step-number">Step 5 of 7</div>
+        <h2>SS<sub>residual</sub>: What the Model Couldn't Explain</h2>
+        <p>
+          Now we add the regression line back. Each colored bar is a
+          <strong>residual</strong> — the gap between the actual MPG and what
+          the model <em>predicted</em>.
           <span class="hlg">Green</span> = car beat the prediction;
           <span class="hlr">red</span> = car fell short.
         </p>
-        <div class="formula">R² = 1 − (SS<sub>residual</sub> / SS<sub>total</sub>)</div>
+        <div class="formula">SS<sub>residual</sub> = Σ (yᵢ − ŷᵢ)²</div>
+        <div class="stat-row">
+          <div class="stat">
+            <div class="stat-value" style="color:#fc8181;">278.32</div>
+            <div class="stat-label">SS<sub>residual</sub></div>
+          </div>
+        </div>
+        <p>
+          Compared to SS<sub>total</sub> = 1126.05, this is much smaller.
+          The regression line fits far better than just guessing the mean
+          for every car.
+        </p>
+      </div>
+    </div>
+
+    <!-- Step 6 -->
+    <div class="step" data-step="6">
+      <div class="step-content">
+        <div class="step-number">Step 6 of 7</div>
+        <h2>R²: Putting It Together</h2>
+        <p>
+          R² is simply the fraction of total variance that the model explains —
+          what's <em>left over</em> after subtracting the residual variance.
+        </p>
+        <div class="formula">R² = 1 − (SS<sub>res</sub> / SS<sub>tot</sub>)</div>
+        <div class="formula" style="border-left-color:#68d391; color:#68d391;">
+          R² = 1 − (278.32 / 1126.05)<br>
+          R² = 1 − 0.247<br>
+          R² = <strong>0.753</strong>
+        </div>
         <div class="stat-row">
           <div class="stat">
             <div class="stat-value" style="color:#68d391;">0.753</div>
@@ -299,20 +361,16 @@ body {
         </div>
         <p>
           Weight alone explains <span class="hlg">75.3%</span> of the
-          variation in fuel economy across these 32 cars. That's a very
-          strong single-predictor relationship.
-        </p>
-        <p>
-          The remaining 24.7% is due to other factors — engine design,
-          aerodynamics, transmission type, and so on.
+          variation in fuel economy. The remaining 24.7% is due to other
+          factors — engine design, aerodynamics, transmission, and so on.
         </p>
       </div>
     </div>
 
-    <!-- Step 5 -->
-    <div class="step" data-step="5">
+    <!-- Step 7 -->
+    <div class="step" data-step="7">
       <div class="step-content">
-        <div class="step-number">Step 5 of 5</div>
+        <div class="step-number">Step 7 of 7</div>
         <h2>p-value: Could This Be Random Chance?</h2>
         <p>
           Even a pattern that looks strong could arise by coincidence in a small
@@ -398,15 +456,18 @@ const cars = [
 ];
 
 // Model coefficients from R: lm(mpg ~ wt, data = mtcars)
-const B0    = 37.2851;   // intercept
-const B1    = -5.3445;   // slope
-const R2    = 0.7528;
-const PVAL  = 1.294e-10;
-const SIGMA = 3.046;     // residual SE
-const N     = 32;
-const XMEAN = 3.21725;   // mean(mtcars$wt)
-const SXX   = 19.6962;   // sum((wt - mean(wt))^2)
-const T025  = 2.042;     // qt(0.975, 30)
+const B0     = 37.2851;    // intercept
+const B1     = -5.3445;    // slope
+const R2     = 0.7528;
+const PVAL   = 1.294e-10;
+const SIGMA  = 3.046;      // residual SE
+const N      = 32;
+const YMEAN  = 20.09062;   // mean(mtcars$mpg)
+const SS_TOT = 1126.047;   // sum((mpg - mean(mpg))^2)
+const SS_RES = 278.322;    // sum(residuals^2)
+const XMEAN  = 3.21725;    // mean(mtcars$wt)
+const SXX    = 19.6962;    // sum((wt - mean(wt))^2)
+const T025   = 2.042;      // qt(0.975, 30)
 
 const predict = wt => B0 + B1 * wt;
 
@@ -462,6 +523,8 @@ g.append('text').attr('transform','rotate(-90)').attr('x',-H/2).attr('y',-40)
 
 // ── Layers (back → front) ────────────────────────────────────────────────────
 const bandLayer     = g.append('g').attr('class','band-layer');
+const tssLayer      = g.append('g').attr('class','tss-layer');     // SS_total bars
+const meanLineLayer = g.append('g').attr('class','mean-layer');    // mean line
 const residualLayer = g.append('g').attr('class','residual-layer');
 const lineLayer     = g.append('g').attr('class','line-layer');
 const pointLayer    = g.append('g').attr('class','point-layer');
@@ -501,16 +564,86 @@ pointLayer.selectAll('circle').data(cars).join('circle')
 // ── Step renderer ────────────────────────────────────────────────────────────
 let currentStep = 0;
 
+// helpers for tss / residual line drawing
+function drawTSSLines(t) {
+  tssLayer.selectAll('line.tss').data(cars).join(
+    enter => enter.append('line').attr('class','tss')
+      .attr('x1', d=>xSc(d.wt)).attr('x2', d=>xSc(d.wt))
+      .attr('y1', d=>ySc(d.mpg)).attr('y2', d=>ySc(d.mpg))
+      .attr('stroke','#f6ad55').attr('stroke-width',1.5).attr('stroke-opacity',0.75)
+      .transition(t).attr('y2', d=>ySc(YMEAN)),
+    update => update.transition(t).style('opacity',1),
+    exit   => exit.transition(t).style('opacity',0).remove()
+  );
+}
+function clearTSSLines(t) {
+  tssLayer.selectAll('line.tss').transition(t).style('opacity',0).remove();
+}
+
+function drawMeanLine(t, opacity) {
+  if (meanLineLayer.select('line.mean').empty()) {
+    meanLineLayer.append('line').attr('class','mean')
+      .attr('x1',0).attr('y1',ySc(YMEAN))
+      .attr('x2',W).attr('y2',ySc(YMEAN))
+      .attr('stroke','#f6ad55').attr('stroke-width',1.8)
+      .attr('stroke-dasharray','6,4').style('opacity',0)
+      .transition(t).style('opacity', opacity);
+    meanLineLayer.append('text').attr('class','mean mean-label')
+      .attr('x',W-4).attr('y',ySc(YMEAN)-7)
+      .attr('text-anchor','end').attr('fill','#f6ad55').attr('font-size','10px')
+      .text('ȳ = 20.09').style('opacity',0)
+      .transition(t).style('opacity', opacity);
+  } else {
+    meanLineLayer.selectAll('.mean').transition(t).style('opacity', opacity);
+  }
+}
+function clearMeanLine(t) {
+  meanLineLayer.selectAll('.mean').transition(t).style('opacity',0).remove();
+}
+
+function drawResidLines(t) {
+  residualLayer.selectAll('line.resid').data(cars).join(
+    enter => enter.append('line').attr('class','resid')
+      .attr('x1', d=>xSc(d.wt)).attr('x2', d=>xSc(d.wt))
+      .attr('y1', d=>ySc(d.mpg)).attr('y2', d=>ySc(d.mpg))
+      .attr('stroke', d => d.mpg >= predict(d.wt) ? '#68d391' : '#fc8181')
+      .attr('stroke-width',1.5).attr('stroke-opacity',0.82)
+      .transition(t).attr('y2', d=>ySc(predict(d.wt))),
+    update => update.transition(t).style('opacity',1),
+    exit   => exit.transition(t).style('opacity',0).remove()
+  );
+}
+function clearResidLines(t) {
+  residualLayer.selectAll('line.resid').transition(t).style('opacity',0).remove();
+}
+
+function addAnnotBox(t, cls, bx, by, w, h, titleText, titleColor, subtitleText) {
+  annotLayer.append('rect').attr('class',`slope-annot ${cls}`)
+    .attr('x',bx).attr('y',by).attr('width',w).attr('height',h)
+    .attr('fill','rgba(0,0,0,0.55)').attr('stroke',`rgba(104,211,145,0.45)`).attr('rx',7)
+    .style('opacity',0).transition(t).style('opacity',1);
+  annotLayer.append('text').attr('class',`slope-annot ${cls}`)
+    .attr('x',bx+w/2).attr('y',by+24).attr('text-anchor','middle')
+    .attr('fill',titleColor).attr('font-size','13px').attr('font-weight','bold')
+    .text(titleText).style('opacity',0).transition(t).style('opacity',1);
+  if (subtitleText) {
+    annotLayer.append('text').attr('class',`slope-annot ${cls}`)
+      .attr('x',bx+w/2).attr('y',by+41).attr('text-anchor','middle')
+      .attr('fill','#aaa').attr('font-size','10px')
+      .text(subtitleText).style('opacity',0).transition(t).style('opacity',1);
+  }
+}
+
 function showStep(step) {
   const dur = 650;
   const t = d3.transition().duration(dur).ease(d3.easeCubicInOut);
 
   // ── Points: always visible from step 1
-  pointLayer.selectAll('circle')
-    .transition(t).style('opacity', step >= 1 ? 1 : 0);
+  pointLayer.selectAll('circle').transition(t).style('opacity', step >= 1 ? 1 : 0);
 
-  // ── Regression line: step 2+
-  if (step >= 2) {
+  // ── Regression line: steps 2, 3, 5, 6, 7 (hidden on 4 = SS_total only view)
+  const showRegLine = step >= 2 && step !== 4;
+  if (showRegLine) {
     if (lineLayer.select('line.reg').empty()) {
       const mx = W / 2;
       lineLayer.append('line').attr('class','reg')
@@ -524,92 +657,94 @@ function showStep(step) {
       lineLayer.select('line.reg').transition(t).style('opacity',1);
     }
   } else {
-    lineLayer.selectAll('line.reg').transition(t).style('opacity',0).on('end', function(){ d3.select(this).remove(); });
+    lineLayer.selectAll('line.reg').transition(t).style('opacity',0)
+      .on('end', function(){ d3.select(this).remove(); });
   }
 
-  // ── Slope / intercept annotations: step 3 only
+  // ── Clear all annots first, then repopulate for current step
   annotLayer.selectAll('.slope-annot').transition(t).style('opacity',0)
     .on('end', function(){ d3.select(this).remove(); });
 
+  // ── Step 3: slope / intercept annotations
   if (step === 3) {
     const wx1 = 2.0, wx2 = 3.0;
     const px1 = xSc(wx1), px2 = xSc(wx2);
     const py1 = ySc(predict(wx1)), py2 = ySc(predict(wx2));
-
-    // Horizontal "run" line
     annotLayer.append('line').attr('class','slope-annot')
       .attr('x1',px1).attr('y1',py1).attr('x2',px2).attr('y2',py1)
       .attr('stroke','#f6ad55').attr('stroke-width',1.5).attr('stroke-dasharray','5,3')
       .style('opacity',0).transition(t).style('opacity',0.85);
-    // Vertical "rise" line
     annotLayer.append('line').attr('class','slope-annot')
       .attr('x1',px2).attr('y1',py1).attr('x2',px2).attr('y2',py2)
       .attr('stroke','#fc8181').attr('stroke-width',1.5).attr('stroke-dasharray','5,3')
       .style('opacity',0).transition(t).style('opacity',0.85);
-    // Run label
     annotLayer.append('text').attr('class','slope-annot')
-      .attr('x',(px1+px2)/2).attr('y',py1-9)
-      .attr('text-anchor','middle').attr('fill','#f6ad55').attr('font-size','11px')
+      .attr('x',(px1+px2)/2).attr('y',py1-9).attr('text-anchor','middle')
+      .attr('fill','#f6ad55').attr('font-size','11px')
       .text('+ 1,000 lbs →').style('opacity',0).transition(t).style('opacity',1);
-    // Rise label
     annotLayer.append('text').attr('class','slope-annot')
-      .attr('x',px2+6).attr('y',(py1+py2)/2+4)
-      .attr('text-anchor','start').attr('fill','#fc8181').attr('font-size','11px')
+      .attr('x',px2+6).attr('y',(py1+py2)/2+4).attr('text-anchor','start')
+      .attr('fill','#fc8181').attr('font-size','11px')
       .text('−5.3 MPG').style('opacity',0).transition(t).style('opacity',1);
-    // Intercept tick
     const iy = ySc(B0);
     annotLayer.append('line').attr('class','slope-annot')
       .attr('x1',-6).attr('y1',iy).attr('x2',14).attr('y2',iy)
       .attr('stroke','#68d391').attr('stroke-width',1.5)
       .style('opacity',0).transition(t).style('opacity',0.85);
     annotLayer.append('text').attr('class','slope-annot')
-      .attr('x',18).attr('y',iy+4)
-      .attr('fill','#68d391').attr('font-size','10px')
+      .attr('x',18).attr('y',iy+4).attr('fill','#68d391').attr('font-size','10px')
       .text('β₀ = 37.3').style('opacity',0).transition(t).style('opacity',1);
   }
 
-  // ── Residuals: step 4 only
+  // ── Step 4: SS_total — mean line + orange bars
   if (step === 4) {
-    residualLayer.selectAll('line.resid').data(cars).join(
-      enter => enter.append('line').attr('class','resid')
-        .attr('x1', d=>xSc(d.wt)).attr('x2', d=>xSc(d.wt))
-        .attr('y1', d=>ySc(d.mpg)).attr('y2', d=>ySc(d.mpg))
-        .attr('stroke', d => d.mpg >= predict(d.wt) ? '#68d391' : '#fc8181')
-        .attr('stroke-width', 1.5).attr('stroke-opacity', 0.8)
-        .transition(t).attr('y2', d=>ySc(predict(d.wt))),
-      update => update.transition(t).style('opacity',1),
-      exit   => exit.transition(t).style('opacity',0).remove()
-    );
-    // R² box
-    const bx = W - 155, by = 8;
-    annotLayer.append('rect').attr('class','r2box slope-annot')
-      .attr('x',bx).attr('y',by).attr('width',150).attr('height',55)
-      .attr('fill','rgba(0,0,0,0.55)').attr('stroke','rgba(104,211,145,0.45)').attr('rx',7)
-      .style('opacity',0).transition(t).style('opacity',1);
-    annotLayer.append('text').attr('class','slope-annot')
-      .attr('x',bx+75).attr('y',by+24).attr('text-anchor','middle')
-      .attr('fill','#68d391').attr('font-size','14px').attr('font-weight','bold')
-      .text('R² = 0.753').style('opacity',0).transition(t).style('opacity',1);
-    annotLayer.append('text').attr('class','slope-annot')
-      .attr('x',bx+75).attr('y',by+41).attr('text-anchor','middle')
-      .attr('fill','#aaa').attr('font-size','10px')
-      .text('75.3% variance explained').style('opacity',0).transition(t).style('opacity',1);
+    drawMeanLine(t, 0.9);
+    drawTSSLines(t);
+    addAnnotBox(t, 'tss-box', W-168, 8, 163, 55, 'SS_total = 1126.05', '#f6ad55', 'Σ (yᵢ − ȳ)²');
   } else {
-    residualLayer.selectAll('line.resid').transition(t).style('opacity',0).remove();
+    clearMeanLine(t);
+    clearTSSLines(t);
   }
 
-  // ── Confidence band + p-value: step 5
+  // ── Step 5: SS_residual — reg line + colored residual bars
   if (step === 5) {
+    drawResidLines(t);
+    addAnnotBox(t, 'res-box', W-168, 8, 163, 55, 'SS_res = 278.32', '#fc8181', 'Σ (yᵢ − ŷᵢ)²');
+  } else {
+    clearResidLines(t);
+  }
+
+  // ── Step 6: R² annotation
+  if (step === 6) {
+    const bx = W - 185, by = 8;
+    annotLayer.append('rect').attr('class','slope-annot r2box')
+      .attr('x',bx).attr('y',by).attr('width',180).attr('height',80)
+      .attr('fill','rgba(0,0,0,0.6)').attr('stroke','rgba(104,211,145,0.5)').attr('rx',7)
+      .style('opacity',0).transition(t).style('opacity',1);
+    const lines = [
+      { text:'R² = 1 − (278.32 / 1126.05)', y: by+22, size:'10px', color:'#aaa'   },
+      { text:'R² = 1 − 0.247',               y: by+40, size:'10px', color:'#aaa'   },
+      { text:'R² = 0.753',                   y: by+62, size:'15px', color:'#68d391' },
+    ];
+    lines.forEach(({text, y, size, color}) =>
+      annotLayer.append('text').attr('class','slope-annot')
+        .attr('x',bx+90).attr('y',y).attr('text-anchor','middle')
+        .attr('fill',color).attr('font-size',size).attr('font-weight', size==='15px' ? 'bold':'normal')
+        .text(text).style('opacity',0).transition(t).style('opacity',1)
+    );
+  }
+
+  // ── Step 7: confidence band + p-value
+  if (step === 7) {
     const bandData = d3.range(1.1, 5.72, 0.05).map(wt => {
-      const se   = SIGMA * Math.sqrt(1/N + Math.pow(wt - XMEAN, 2) / SXX);
+      const se = SIGMA * Math.sqrt(1/N + Math.pow(wt - XMEAN, 2) / SXX);
       const pred = predict(wt);
-      return { wt, lo: pred - T025 * se, hi: pred + T025 * se };
+      return { wt, lo: pred - T025*se, hi: pred + T025*se };
     });
     const area = d3.area()
       .x( d => xSc(d.wt))
       .y0(d => ySc(d.lo))
       .y1(d => ySc(d.hi));
-
     bandLayer.selectAll('path.band').data([bandData]).join(
       enter => enter.append('path').attr('class','band')
         .datum(d => d).attr('d', area)
@@ -618,9 +753,8 @@ function showStep(step) {
       update => update.transition(t).attr('fill-opacity',0.14),
       exit   => exit.transition(t).attr('fill-opacity',0).remove()
     );
-    // p-value box
     const bx = W - 170, by = 8;
-    annotLayer.append('rect').attr('class','pbox slope-annot')
+    annotLayer.append('rect').attr('class','slope-annot pbox')
       .attr('x',bx).attr('y',by).attr('width',165).attr('height',55)
       .attr('fill','rgba(0,0,0,0.55)').attr('stroke','rgba(104,211,145,0.45)').attr('rx',7)
       .style('opacity',0).transition(t).style('opacity',1);

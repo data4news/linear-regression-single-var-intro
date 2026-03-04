@@ -696,25 +696,45 @@ function showStep(step) {
       .text('β₀ = 37.3').style('opacity',0).transition(t).style('opacity',1);
   }
 
-  // ── Step 4: SS_total — mean line + orange bars
+  // ── Step 4: SS_total — mean line + orange bars only
   if (step === 4) {
     drawMeanLine(t, 0.9);
     drawTSSLines(t);
     addAnnotBox(t, 'tss-box', W-168, 8, 163, 55, 'SS_total = 1126.05', '#f6ad55', 'Σ (yᵢ − ȳ)²');
-  } else {
+  }
+
+  // ── Steps 5 & 6: keep mean line + TSS bars (dimmed), add residual bars on top
+  if (step === 5 || step === 6) {
+    drawMeanLine(t, 0.35);
+    // Dim existing TSS bars or draw them dimmed
+    tssLayer.selectAll('line.tss').data(cars).join(
+      enter => enter.append('line').attr('class','tss')
+        .attr('x1', d=>xSc(d.wt)).attr('x2', d=>xSc(d.wt))
+        .attr('y1', d=>ySc(d.mpg)).attr('y2', d=>ySc(YMEAN))
+        .attr('stroke','#f6ad55').attr('stroke-width',1.5).attr('stroke-opacity',0.3),
+      update => update.transition(t).style('opacity',0.35),
+      exit   => exit.transition(t).style('opacity',0).remove()
+    );
+    drawResidLines(t);
+  }
+
+  // Clear TSS lines only when leaving steps 4/5/6 entirely
+  if (step < 4 || step > 6) {
     clearMeanLine(t);
     clearTSSLines(t);
   }
 
-  // ── Step 5: SS_residual — reg line + colored residual bars
-  if (step === 5) {
-    drawResidLines(t);
-    addAnnotBox(t, 'res-box', W-168, 8, 163, 55, 'SS_res = 278.32', '#fc8181', 'Σ (yᵢ − ŷᵢ)²');
-  } else {
+  // Clear residual lines when not on 5 or 6
+  if (step !== 5 && step !== 6) {
     clearResidLines(t);
   }
 
-  // ── Step 6: R² annotation
+  // ── Step 5 annotation: SS_residual box
+  if (step === 5) {
+    addAnnotBox(t, 'res-box', W-168, 8, 163, 55, 'SS_res = 278.32', '#fc8181', 'Σ (yᵢ − ŷᵢ)²');
+  }
+
+  // ── Step 6: R² annotation showing the ratio
   if (step === 6) {
     const bx = W - 185, by = 8;
     annotLayer.append('rect').attr('class','slope-annot r2box')
